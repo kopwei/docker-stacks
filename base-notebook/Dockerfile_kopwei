@@ -164,10 +164,6 @@ RUN sed -re "s/c.NotebookApp/c.ServerApp/g" \
 
 RUN fix-permissions /etc/jupyter/
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    cifs-utils nfs-common && \
-    rm -rf /var/lib/apt/lists/*
-
 # Switch back to jovyan to avoid accidental container runs as root
 USER $NB_UID
 
