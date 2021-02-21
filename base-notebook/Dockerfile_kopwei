@@ -4,7 +4,7 @@
 # Ubuntu 20.04 (focal)
 # https://hub.docker.com/_/ubuntu/?tab=tags&name=focal
 # OS/ARCH: linux/amd64
-ARG ROOT_CONTAINER=ubuntu:focal-20210119@sha256:3093096ee188f8ff4531949b8f6115af4747ec1c58858c091c8cb4579c39cc4e
+ARG ROOT_CONTAINER=ubuntu:focal
 
 ARG BASE_CONTAINER=$ROOT_CONTAINER
 FROM $BASE_CONTAINER
@@ -28,7 +28,7 @@ ARG conda_version="4.9.2"
 # Miniforge installer patch version
 ARG miniforge_patch_number="5"
 # Miniforge installer architecture
-ARG miniforge_arch="x86_64"
+ARG TARGETARCH
 # Python implementation to use 
 # can be either Miniforge3 to use Python or Miniforge-pypy3 to use PyPy
 ARG miniforge_python="Miniforge3"
@@ -36,9 +36,9 @@ ARG miniforge_python="Miniforge3"
 # Miniforge archive to install
 ARG miniforge_version="${conda_version}-${miniforge_patch_number}"
 # Miniforge installer
-ARG miniforge_installer="${miniforge_python}-${miniforge_version}-Linux-${miniforge_arch}.sh"
 # Miniforge checksum
-ARG miniforge_checksum="49dddb3998550e40adc904dae55b0a2aeeb0bd9fc4306869cc4a600ec4b8b47c"
+ARG miniforge_checksum_amd64="49dddb3998550e40adc904dae55b0a2aeeb0bd9fc4306869cc4a600ec4b8b47c"
+ARG miniforge_checksum_arm64="1f9c74963e63db4c9bbe09f99ec5feea67bafafec7cf65604aa5afbacc132c3a"
 
 # Install all OS dependencies for notebook server that starts but lacks all
 # features (e.g., download as all possible file formats)
@@ -105,7 +105,12 @@ RUN mkdir "/home/$NB_USER/work" && \
 WORKDIR /tmp
 
 # Prerequisites installation: conda, pip, tini
-RUN wget --quiet "https://github.com/conda-forge/miniforge/releases/download/${miniforge_version}/${miniforge_installer}" && \
+RUN case $TARGETARCH in \
+        amd64) export miniforge_arch=x86_64 ; export miniforge_checksum=${miniforge_checksum_amd64} ;; \
+        arm64) export miniforge_arch=aarch64 ; export miniforge_checksum=${miniforge_checksum_arm64} ;; \
+    esac; \
+    export miniforge_installer="${miniforge_python}-${miniforge_version}-Linux-${miniforge_arch}.sh"  && \
+    wget --quiet "https://github.com/conda-forge/miniforge/releases/download/${miniforge_version}/${miniforge_installer}" && \
     echo "${miniforge_checksum} *${miniforge_installer}" | sha256sum --check && \
     /bin/bash "${miniforge_installer}" -f -b -p $CONDA_DIR && \
     rm "${miniforge_installer}" && \
