@@ -32,7 +32,9 @@ RUN /opt/conda/bin/conda install -c "${INSTALL_CHANNEL}" -c "${CUDA_CHANNEL}" -y
     /opt/conda/bin/conda clean -ya && \
     /opt/conda/bin/pip install torch===1.7.1+cu110 torchvision===0.8.2+cu110 torchaudio===0.7.2 torchtext==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
 
-RUN /opt/conda/bin/pip install torchelastic
+RUN /opt/conda/bin/pip install torchelastic jupyter-tensorboard-proxy==0.1.1
+RUN fix-permissions "${CONDA_DIR}" && \
+    fix-permissions "/home/${NB_USER}"
 
 FROM ${BASE_CONTAINER} as final
 LABEL maintainer="Jupyter Project <jupyter@googlegroups.com>"
@@ -47,6 +49,8 @@ RUN --mount=type=cache,id=apt-final,target=/var/cache/apt \
     rm -rf /var/lib/apt/lists/*
 COPY --from=conda-installs /opt/conda /opt/conda
 USER $NB_UID
+RUN fix-permissions "${CONDA_DIR}" && \
+    fix-permissions "/home/${NB_USER}"
 ENV PATH /opt/conda/bin:$PATH
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility

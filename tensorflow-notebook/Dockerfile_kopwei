@@ -11,7 +11,5 @@ RUN pip install --quiet --no-cache-dir \
     'tensorflow==2.4.1' \
     'tensorflow-gpu==2.4.1' \
     'jupyter-tensorboard-proxy==0.1.1' && \
-    jupyter serverextension enable --sys-prefix jupyter_server_proxy && \
-    jupyter labextension install @jupyterlab/server-proxy && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "/home/${NB_USER}"
